@@ -4,14 +4,57 @@
  * Sheller
  * 
  * @author Nick Tsai <myintaer@gmail.com>
- * @version 0.1.0
+ * @version 0.1.1
  */
 
+// Configuration
+$username = 'user';
+$password = 'pass';
+// sha1 password validation while $password is empty
+$hashPassword = 'da39a3ee5e6b4b0d3255cfef95601890afd80709';
+
+/**
+ * Validation
+ */
+$authUser = isset($_SERVER['PHP_AUTH_USER']) ? $_SERVER['PHP_AUTH_USER'] : '';
+$authPW = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
+$errorFalg = false;
+// Conditions
+if (!isset($_SERVER['PHP_AUTH_USER'])) {
+    $errorFalg = true;
+}
+else if ($authUser != $username) {
+    $errorFalg = true;
+}
+else if ($password && $authPW!=$password) {
+    $errorFalg = true;
+}
+else if (!$password && sha1($authPW)!=$hashPassword) {
+    $errorFalg = true;
+}
+// Check error
+if ($errorFalg) {
+    showLoginDialog();
+    die('Authorization failed');
+}
+
+
+// Shell route
 if (isset($_GET['shell'])) {
     
     $response = shell_exec($_GET['shell']);
 }
 
+/**
+ * Show login dialog
+ *
+ * @return void
+ */
+function showLoginDialog()
+{
+    header('WWW-Authenticate: Basic realm="Sheller"');
+    header('HTTP/1.0 401 Unauthorized');
+}
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +62,7 @@ if (isset($_GET['shell'])) {
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Page Title</title>
+    <title>Sheller</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
     /*!
